@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кері байланыс — Бағдаршам әдісі</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Baloo+2:wght@600;800&display=swap');
+
+  :root {
+    --bg: #1a3a2a;
+    --panel: #0f2418;
+    --card: #163020;
+    --border: #2e6642;
+    --red-off: #3a1212;
+    --red-on: #ff2d2d;
+    --red-glow: rgba(255,45,45,0.7);
+    --yellow-off: #3a2d00;
+    --yellow-on: #ffd600;
+    --yellow-glow: rgba(255,214,0,0.7);
+    --green-off: #0a2a12;
+    --green-on: #22e05a;
+    --green-glow: rgba(34,224,90,0.7);
+    --text: #e8f5ec;
+    --accent: #3ddc84;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(61,220,132,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(34,224,90,0.05) 0%, transparent 50%);
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  header h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(61,220,132,0.4);
+  }
+
+  header p {
+    font-size: 0.95rem;
+    color: #82c99a;
+    margin-top: 4px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  /* ===== COUNTER SECTION ===== */
+  .setup-panel {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    justify-content: center;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+  }
+
+  .setup-panel label {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .counter-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .counter-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--accent);
+    font-size: 1.5rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+  .counter-btn:hover { background: var(--border); color: #fff; transform: scale(1.1); }
+  .counter-btn:active { transform: scale(0.95); }
+
+  #count-display {
+    font-family: 'Baloo 2', cursive;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    min-width: 48px;
+    text-align: center;
+  }
+
+  .start-btn {
+    background: var(--accent);
+    color: #0a1f12;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 28px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 4px 18px rgba(61,220,132,0.35);
+  }
+  .start-btn:hover { background: #58f09a; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(61,220,132,0.5); }
+  .start-btn:active { transform: translateY(0); }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.85rem; font-weight: 800; letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .legend-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+  }
+  .legend-dot.r { background: var(--red-on); box-shadow: 0 0 10px var(--red-glow); }
+  .legend-dot.y { background: var(--yellow-on); box-shadow: 0 0 10px var(--yellow-glow); }
+  .legend-dot.g { background: var(--green-on); box-shadow: 0 0 10px var(--green-glow); }
+
+  /* ===== TRAFFIC LIGHTS GRID ===== */
+  #lights-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    max-width: 1200px;
+    width: 100%;
+  }
+
+  /* ===== SINGLE TRAFFIC LIGHT ===== */
+  .traffic-light-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.5) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .child-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #82c99a;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .traffic-light {
+    background: #1c1c1c;
+    border-radius: 16px;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    border: 3px solid #333;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative;
+    cursor: default;
+  }
+
+  /* pole */
+  .traffic-light::after {
+    content: '';
+    position: absolute;
+    bottom: -22px;
+    left: 50%; transform: translateX(-50%);
+    width: 8px; height: 22px;
+    background: #333;
+    border-radius: 0 0 4px 4px;
+  }
+
+  .bulb {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.15s;
+    position: relative;
+    border: 2px solid rgba(255,255,255,0.05);
+  }
+  .bulb:hover { transform: scale(1.08); }
+  .bulb:active { transform: scale(0.95); }
+
+  /* OFF states */
+  .bulb.red-bulb   { background: var(--red-off); }
+  .bulb.yellow-bulb{ background: var(--yellow-off); }
+  .bulb.green-bulb { background: var(--green-off); }
+
+  /* Highlight gloss */
+  .bulb::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 8px;
+    width: 12px; height: 8px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* ON states */
+  .bulb.red-bulb.on {
+    background: var(--red-on);
+    box-shadow: 0 0 18px 6px var(--red-glow), 0 0 40px 10px rgba(255,45,45,0.3);
+  }
+  .bulb.yellow-bulb.on {
+    background: var(--yellow-on);
+    box-shadow: 0 0 18px 6px var(--yellow-glow), 0 0 40px 10px rgba(255,214,0,0.3);
+  }
+  .bulb.green-bulb.on {
+    background: var(--green-on);
+    box-shadow: 0 0 18px 6px var(--green-glow), 0 0 40px 10px rgba(34,224,90,0.3);
+  }
+
+  /* ===== RESULTS SECTION ===== */
+  #results-section {
+    margin-top: 50px;
+    width: 100%;
+    max-width: 600px;
+    display: none;
+  }
+  #results-section h2 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .result-bars { display: flex; flex-direction: column; gap: 12px; }
+  .result-row { display: flex; align-items: center; gap: 14px; }
+  .result-row span { font-size: 0.9rem; font-weight: 800; min-width: 100px; white-space: nowrap; text-transform: uppercase; }
+  .bar-track {
+    flex: 1; height: 22px; background: var(--panel);
+    border-radius: 11px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .bar-fill {
+    height: 100%; border-radius: 11px;
+    transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    min-width: 0;
+  }
+  .bar-fill.red    { background: var(--red-on); box-shadow: 0 0 8px var(--red-glow); }
+  .bar-fill.yellow { background: var(--yellow-on); box-shadow: 0 0 8px var(--yellow-glow); }
+  .bar-fill.green  { background: var(--green-on); box-shadow: 0 0 8px var(--green-glow); }
+  .result-num { font-size: 1rem; font-weight: 900; min-width: 28px; text-align: right; }
+
+  /* ===== RESET ===== */
+  .reset-btn {
+    display: block;
+    margin: 32px auto 0;
+    background: transparent;
+    border: 2px solid var(--border);
+    color: #82c99a;
+    border-radius: 10px;
+    padding: 10px 24px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-hint {
+    color: #4d8a62;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    margin-top: 20px;
+    letter-spacing: 0.06em;
+  }
+
+  /* bottom spacer for poles */
+  .lights-spacer { height: 28px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Кері байланыс</h1>
+  <p>Бағдаршам әдісі</p>
+</header>
+
+<div class="setup-panel">
+  <label>Оқушылар саны:</label>
+  <div class="counter-controls">
+    <button class="counter-btn" id="btn-minus">−</button>
+    <span id="count-display">5</span>
+    <button class="counter-btn" id="btn-plus">+</button>
+  </div>
+  <button class="start-btn" id="btn-start">Бастау</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot r"></span> Түсінбедім</div>
+  <div class="legend-item"><span class="legend-dot y"></span> Сұрақтарым бар</div>
+  <div class="legend-item"><span class="legend-dot g"></span> Түсіндім!</div>
+</div>
+
+<div id="lights-grid">
+  <p class="empty-hint">Оқушылар санын таңдап «Бастау» басыңыз</p>
+</div>
+<div class="lights-spacer"></div>
+
+<div id="results-section">
+  <h2>Нәтижелер</h2>
+  <div class="result-bars">
+    <div class="result-row">
+      <span style="color:var(--red-on)">🔴 Қиын</span>
+      <div class="bar-track"><div class="bar-fill red" id="bar-red" style="width:0%"></div></div>
+      <span class="result-num" id="num-red">0</span>
+    </div>
+    <div class="result-row">
+      <span style="color:var(--yellow-on)">🟡 Сұрақ</span>
+      <div class="bar-track"><div class="bar-fill yellow" id="bar-yellow" style="width:0%"></div></div>
+      <span class="result-num" id="num-yellow">0</span>
+    </div>
+    <div class="result-row">
+      <span style="color:var(--green-on)">🟢 Жақсы</span>
+      <div class="bar-track"><div class="bar-fill green" id="bar-green" style="width:0%"></div></div>
+      <span class="result-num" id="num-green">0</span>
+    </div>
+  </div>
+  <button class="reset-btn" id="btn-reset">↺ Қайта бастау</button>
+</div>
+
+<script>
+  const grid = document.getElementById('lights-grid');
+  const countDisplay = document.getElementById('count-display');
+  const resultSection = document.getElementById('results-section');
+
+  let childCount = 5;
+  // choices: null | 'red' | 'yellow' | 'green'
+  let choices = [];
+
+  // Counter
+  document.getElementById('btn-minus').addEventListener('click', () => {
+    if (childCount > 1) { childCount--; countDisplay.textContent = childCount; }
+  });
+  document.getElementById('btn-plus').addEventListener('click', () => {
+    if (childCount < 40) { childCount++; countDisplay.textContent = childCount; }
+  });
+
+  document.getElementById('btn-start').addEventListener('click', buildLights);
+  document.getElementById('btn-reset').addEventListener('click', buildLights);
+
+  function buildLights() {
+    choices = Array(childCount).fill(null);
+    grid.innerHTML = '';
+    resultSection.style.display = 'none';
+
+    for (let i = 0; i < childCount; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'traffic-light-wrap';
+      wrap.style.animationDelay = `${i * 0.05}s`;
+
+      const label = document.createElement('div');
+      label.className = 'child-label';
+      label.textContent = `${i + 1}-оқушы`;
+
+      const tl = document.createElement('div');
+      tl.className = 'traffic-light';
+
+      ['red', 'yellow', 'green'].forEach(color => {
+        const bulb = document.createElement('div');
+        bulb.className = `bulb ${color}-bulb`;
+        bulb.dataset.index = i;
+        bulb.dataset.color = color;
+        bulb.addEventListener('click', () => onBulbClick(i, color, tl));
+        tl.appendChild(bulb);
+      });
+
+      wrap.appendChild(label);
+      wrap.appendChild(tl);
+      grid.appendChild(wrap);
+    }
+  }
+
+  function onBulbClick(index, color, tlEl) {
+    choices[index] = color;
+
+    // Update bulb states for this light
+    tlEl.querySelectorAll('.bulb').forEach(b => {
+      b.classList.remove('on');
+      if (b.dataset.color === color) b.classList.add('on');
+    });
+
+    updateResults();
+  }
+
+  function updateResults() {
+    const answered = choices.filter(c => c !== null).length;
+    if (answered === 0) return;
+
+    resultSection.style.display = 'block';
+
+    const counts = { red: 0, yellow: 0, green: 0 };
+    choices.forEach(c => { if (c) counts[c]++; });
+
+    const total = childCount;
+    ['red','yellow','green'].forEach(c => {
+      const pct = total > 0 ? (counts[c] / total * 100) : 0;
+      document.getElementById(`bar-${c}`).style.width = pct + '%';
+      document.getElementById(`num-${c}`).textContent = counts[c];
+    });
+  }
+</script>
+</body>
+</html>
